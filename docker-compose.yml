@@ -1,11 +1,10 @@
-version: "3.9"
 services:
+
   ollama-intel-gpu:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ollama-intel-gpu
-    image: ollama-intel-gpu:latest
+    image: ghcr.io/dbirks/ollama-intel-gpu:latest
     restart: always
     devices:
       - /dev/dri:/dev/dri
@@ -14,9 +13,9 @@ services:
       - ollama-intel-gpu:/root/.ollama
     environment:
       - DISPLAY=${DISPLAY}
+
   ollama-webui:
     image: ghcr.io/open-webui/open-webui:v0.3.10
-    container_name: ollama-webui
     volumes:
       - ollama-webui:/app/backend/data
     depends_on:
@@ -28,6 +27,7 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
+
 volumes:
   ollama-webui: {}
   ollama-intel-gpu: {}
