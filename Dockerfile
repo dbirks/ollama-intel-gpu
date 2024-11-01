@@ -1,41 +1,51 @@
+# syntax=docker/dockerfile:1
+
 FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=america/los_angeles
+ENV TZ=America/Los_Angeles
 
 # Base packages
-RUN apt update && \
-    apt install --no-install-recommends -q -y \
-    software-properties-common \
+RUN << EOF
+  apt-get update
+  apt-get install --no-install-recommends -q -y \
     ca-certificates \
-    gnupg \
-    wget \
     curl \
+    gnupg \
+    ocl-icd-libopencl1 \
     python3 \
     python3-pip \
-    ocl-icd-libopencl1
+    software-properties-common \
+    wget
+  apt-get clean
+EOF
 
 # Intel GPU compute user-space drivers
-RUN mkdir -p /tmp/gpu && \
- cd /tmp/gpu && \
- wget https://github.com/oneapi-src/level-zero/releases/download/v1.18.3/level-zero_1.18.3+u22.04_amd64.deb && \
- wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17791.9/intel-igc-core_1.0.17791.9_amd64.deb && \
- wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17791.9/intel-igc-opencl_1.0.17791.9_amd64.deb && \
- wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-level-zero-gpu_1.6.31294.12_amd64.deb && \
- wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-opencl-icd_24.39.31294.12_amd64.deb && \
- wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/libigdgmm12_22.5.2_amd64.deb && \
- dpkg -i *.deb && \
- rm *.deb
+RUN << EOF
+  mkdir -p /tmp/gpu
+  cd /tmp/gpu
+  wget https://github.com/oneapi-src/level-zero/releases/download/v1.18.3/level-zero_1.18.3+u22.04_amd64.deb
+  wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17791.9/intel-igc-core_1.0.17791.9_amd64.deb
+  wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17791.9/intel-igc-opencl_1.0.17791.9_amd64.deb
+  wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-level-zero-gpu_1.6.31294.12_amd64.deb
+  wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-opencl-icd_24.39.31294.12_amd64.deb
+  wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/libigdgmm12_22.5.2_amd64.deb
+  dpkg -i *.deb
+  rm *.deb
+EOF
 
 # Required compute runtime level-zero variables
 ENV ZES_ENABLE_SYSMAN=1
 
-# oneAPI 
-RUN wget -qO - https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
-   gpg --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg && \
-   echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
-   tee /etc/apt/sources.list.d/oneAPI.list && \
-  apt update && \
-  apt install --no-install-recommends -q -y \
+# oneAPI
+RUN << EOF
+  wget -qO - https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
+    gpg --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg
+
+  echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
+    tee /etc/apt/sources.list.d/oneAPI.list
+
+  apt-get update
+  apt-get install --no-install-recommends -q -y \
     intel-oneapi-common-vars=2024.0.0-49406 \
     intel-oneapi-common-oneapi-vars=2024.0.0-49406 \
     intel-oneapi-compiler-dpcpp-cpp=2024.0.2-49895 \
@@ -49,6 +59,8 @@ RUN wget -qO - https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-P
     intel-oneapi-ccl=2021.11.2-5 \
     intel-oneapi-dnnl=2024.0.0-49521 \
     intel-oneapi-tcm-1.0=1.0.0-435
+  apt-get clean
+EOF
 
 # Required oneAPI environment variables
 ENV USE_XETLA=OFF
@@ -58,8 +70,8 @@ ENV SYCL_CACHE_PERSISTENT=1
 COPY _init.sh /usr/share/lib/init_workspace.sh
 COPY _run.sh /usr/share/lib/run_workspace.sh
 
-# Ollama via ipex-llm 
-RUN pip3 install --pre --upgrade ipex-llm[cpp] 
+# Ollama via ipex-llm
+RUN pip3 install --pre --upgrade ipex-llm[cpp]
 
 ENV OLLAMA_NUM_GPU=999
 ENV OLLAMA_HOST=0.0.0.0:11434
