@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build images
-        run: docker compose build --progress plain
+        run: docker compose --progress plain build
 
       - name: Push images
         run: docker compose push
