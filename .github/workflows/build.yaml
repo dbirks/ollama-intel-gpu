@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_BUILDKIT: 1
   IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/ollama-intel-gpu
 
 jobs:

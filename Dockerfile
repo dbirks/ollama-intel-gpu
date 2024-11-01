@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles
 
 # Base packages
-RUN << EOF
+RUN <<EOF
   apt-get update
   apt-get install --no-install-recommends -q -y \
     ca-certificates \
@@ -20,7 +20,7 @@ RUN << EOF
 EOF
 
 # Intel GPU compute user-space drivers
-RUN << EOF
+RUN <<EOF
   mkdir -p /tmp/gpu
   cd /tmp/gpu
   wget https://github.com/oneapi-src/level-zero/releases/download/v1.18.3/level-zero_1.18.3+u22.04_amd64.deb
@@ -37,7 +37,7 @@ EOF
 ENV ZES_ENABLE_SYSMAN=1
 
 # oneAPI
-RUN << EOF
+RUN <<EOF
   wget -qO - https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
     gpg --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg
 
@@ -77,4 +77,3 @@ ENV OLLAMA_NUM_GPU=999
 ENV OLLAMA_HOST=0.0.0.0:11434
 
 ENTRYPOINT ["/bin/bash", "/usr/share/lib/run_workspace.sh"]
-
