@@ -13,6 +13,8 @@ services:
       - ollama-intel-gpu:/root/.ollama
     environment:
       - DISPLAY=${DISPLAY}
+    ports:
+      - 11434:11434
 
   ollama-webui:
     image: ghcr.io/open-webui/open-webui:v0.3.10
