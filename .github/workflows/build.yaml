@@ -7,6 +7,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  IMAGE_BASE: ghcr.io/{{ github.repository_owner }}/ollama-intel-gpu
+
 jobs:
   build:
     name: Build Docker image
@@ -15,10 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build image
-        run: docker compose build
-
-      - name: Login to GitHub Container Registry
+      - name: Login to Github Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
@@ -26,6 +26,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image
-        if: github.event_name != 'pull_request'
-        run: docker compose push
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |-
+            ${{ env.IMAGE_BASE }}:latest,
+            ${{ env.IMAGE_BASE }}:${{ github.sha }}
